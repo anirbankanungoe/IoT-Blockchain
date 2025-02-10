@@ -1,0 +1,2 @@
+These files are for the image grabbing microservice that will enable the Logitech C505 camera connected to my Raspberry Pi 4 (Model B) to take pictures. The program is designed to take 1 image every 10 seconds
+It sends this image to another microservice called the image database microservice. This microservice is designed NOT to store any image in the Raspberry Pi. So the images after being taken are sent to the image database microservice and then they are deleted from the RAspberry Pi 4 memory.
