@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: camera-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: camera-service
+  template:
+    metadata:
+      labels:
+        app: camera-service
+    spec:
+      hostNetwork: true  # Required for ZeroTier
+      containers:
+      - name: camera-service
+        image: localhost:5000/camera-service:latest
+        imagePullPolicy: Always
+        env:
+        - name: RPI_ZEROTIER_IP
+          value: "172.23.228.240"
+        - name: WINDOWS_ZEROTIER_IP
+          value: "172.23.67.130"
+        - name: SERVICE_PORT
+          value: "5555"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        securityContext:
+          privileged: true  # Required for camera access
+          runAsUser: 0
+          runAsGroup: 44  # video group
+        volumeMounts:
+        - name: camera-device
+          mountPath: /dev/video0
+        - name: logs
+          mountPath: /app/logs
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+        readinessProbe:
+          exec:
+            command:
+            - python3
+            - -c
+            - "import cv2; cap = cv2.VideoCapture(0); ret = cap.read()[0]; cap.release(); exit(0 if ret else 1)"
+          initialDelaySeconds: 10
+          periodSeconds: 30
+      volumes:
+      - name: camera-device
+        hostPath:
+          path: /dev/video0
+          type: CharDevice
+      - name: logs
+        emptyDir: {}
