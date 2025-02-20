@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-handler
+  namespace: camera-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-handler
+  template:
+    metadata:
+      labels:
+        app: email-handler
+    spec:
+      containers:
+      - name: email-handler
+        image: email-handler:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 30082
+        env:
+        - name: EMAIL_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: email-credentials
+              key: email
+        - name: EMAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: email-credentials
+              key: password
+        - name: BLOCKCHAIN_ENABLED
+          value: "true"
+        - name: BLOCKCHAIN_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: blockchain-credentials
+              key: email-handler-key
+        - name: BLOCKCHAIN_SERVICE_URL
+          value: "http://blockchain-service:30083"
+        - name: DB_SERVICE_URL
+          value: "http://image-db-service:30081"
+        volumeMounts:
+        - name: metrics-storage
+          mountPath: /app/metrics
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+      volumes:
+      - name: metrics-storage
+        persistentVolumeClaim:
+          claimName: metrics-storage-pvc
