@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-handler
+  namespace: camera-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-handler
+  template:
+    metadata:
+      labels:
+        app: email-handler
+    spec:
+      containers:
+      - name: email-handler
+        image: email-handler:latest
+        imagePullPolicy: Never
+        env:
+        - name: EMAIL_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: email-credentials
+              key: email
+        - name: EMAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: email-credentials
+              key: password
+        - name: DB_SERVICE_URL
+          value: "http://172.23.67.130:30081"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
