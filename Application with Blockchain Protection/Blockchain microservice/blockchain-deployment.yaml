@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blockchain-service
+  namespace: camera-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blockchain-service
+  template:
+    metadata:
+      labels:
+        app: blockchain-service
+    spec:
+      containers:
+      - name: blockchain-service
+        image: blockchain-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 30083
+        env:
+        - name: METRICS_ENABLED
+          value: "true"
+        - name: NETWORK_ID
+          value: "camera-blockchain"
+        volumeMounts:
+        - name: blockchain-storage
+          mountPath: /app/blockchain
+        - name: metrics-storage
+          mountPath: /app/metrics
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+      volumes:
+      - name: blockchain-storage
+        persistentVolumeClaim:
+          claimName: blockchain-storage-pvc
+      - name: metrics-storage
+        persistentVolumeClaim:
+          claimName: metrics-storage-pvc
