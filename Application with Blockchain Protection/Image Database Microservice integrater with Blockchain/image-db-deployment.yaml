@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-db
+  namespace: camera-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-db
+  template:
+    metadata:
+      labels:
+        app: image-db
+    spec:
+      containers:
+      - name: image-db
+        image: image-db:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 30081
+        env:
+        - name: BLOCKCHAIN_ENABLED
+          value: "true"
+        - name: BLOCKCHAIN_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: blockchain-credentials
+              key: image-db-key
+        - name: BLOCKCHAIN_SERVICE_URL
+          value: "http://blockchain-service:30083"
+        - name: CAMERA_SERVICE_HOST
+          value: "172.23.67.130"
+        - name: CAMERA_SERVICE_PORT
+          value: "5555"
+        volumeMounts:
+        - name: image-storage
+          mountPath: /app/images
+        - name: metrics-storage
+          mountPath: /app/metrics
+        - name: database-storage
+          mountPath: /app/data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+      volumes:
+      - name: image-storage
+        persistentVolumeClaim:
+          claimName: image-storage-pvc
+      - name: metrics-storage
+        persistentVolumeClaim:
+          claimName: metrics-storage-pvc
+      - name: database-storage
+        persistentVolumeClaim:
+          claimName: db-storage-pvc

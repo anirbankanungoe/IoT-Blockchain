@@ -1,0 +1,32 @@
+# Flask framework
+flask==2.3.3
+werkzeug==2.3.7
+
+# Remove sqlite3 line as it's built into Python
+
+# Image processing
+Pillow==10.0.0
+
+# HTTP and networking
+requests==2.31.0
+urllib3==2.0.7
+
+# Blockchain dependencies
+web3==6.15.1
+eth-account==0.10.0
+eth-utils==2.3.1
+eth-keys==0.4.0
+hexbytes==0.3.1
+
+# Performance monitoring
+psutil==5.9.5
+pandas==2.1.1
+openpyxl==3.1.2
+numpy==1.24.3
+
+# Date/Time handling
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Utilities
+python-dotenv==1.0.0
