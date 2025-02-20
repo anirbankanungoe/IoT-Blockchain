@@ -1,0 +1,90 @@
+# requirements.txt
+flask==2.3.3
+requests==2.31.0
+python-dotenv==1.0.0
+Pillow==10.0.0
+python-dateutil==2.8.2
+
+# Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    libjpeg-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+# Create directories
+RUN mkdir -p /app/data
+RUN mkdir -p /app/images
+
+COPY image_db_service.py .
+
+CMD ["python", "image_db_service.py"]
+
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-db
+  namespace: camera-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-db
+  template:
+    metadata:
+      labels:
+        app: image-db
+    spec:
+      containers:
+      - name: image-db
+        image: image-db:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 30081
+        volumeMounts:
+        - name: image-storage
+          mountPath: /app/images
+      volumes:
+      - name: image-storage
+        persistentVolumeClaim:
+          claimName: image-storage-pvc
+
+---
+# service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-db
+  namespace: camera-system
+spec:
+  type: NodePort
+  ports:
+  - port: 30081
+    targetPort: 30081
+    nodePort: 30081
+  selector:
+    app: image-db
+
+---
+# pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: image-storage-pvc
+  namespace: camera-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,15 @@
+flask==2.3.3
+
+# Camera and Image Processing
+opencv-python==4.8.1.78
+numpy==1.26.3
+Pillow==10.0.0
+
+# HTTP and API
+requests==2.31.0
+
+# Date/Time handling
+python-dateutil==2.8.2
+
+# Configuration
+python-dotenv==1.0.0
